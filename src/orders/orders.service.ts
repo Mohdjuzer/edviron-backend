@@ -11,19 +11,19 @@ export class OrdersService {
     @InjectModel(OrderStatus.name) private orderStatusModel: Model<OrderStatusDocument>,
   ) {}
 
-  // Create a new Order
+  // ✅ Create a new Order
   async createOrder(orderDto: Partial<Order>): Promise<Order> {
     const createdOrder = new this.orderModel(orderDto);
     return createdOrder.save();
   }
 
-  // Create new OrderStatus entry
+  // ✅ Create new OrderStatus entry
   async createOrderStatus(orderStatusDto: Partial<OrderStatus>): Promise<OrderStatus> {
     const createdOrderStatus = new this.orderStatusModel(orderStatusDto);
     return createdOrderStatus.save();
   }
 
-  // Update OrderStatus by custom_order_id
+  // ✅ Update OrderStatus by custom_order_id
   async updateOrderStatusByCustomOrderId(
     customOrderId: string,
     updateData: Partial<OrderStatus>
@@ -40,15 +40,69 @@ export class OrdersService {
     return updated;
   }
 
-  // Fetch all transactions: aggregate order + order_status data
+  // ✅ Handle webhook to update OrderStatus (by custom_order_id or collect_id)
+  async updateOrderStatusFromWebhook(payload: any): Promise<OrderStatus> {
+    const {
+      order_info: {
+        order_id,
+        order_amount,
+        transaction_amount,
+        gateway,
+        bank_reference,
+        status,
+        payment_mode,
+        payemnt_details: payment_details, // fix typo
+        Payment_message: payment_message, // normalize case
+        payment_time,
+        error_message,
+      },
+    } = payload;
+
+    const update = {
+      order_amount,
+      transaction_amount,
+      gateway,
+      bank_reference,
+      status,
+      payment_mode,
+      payment_details,
+      payment_message,
+      payment_time,
+      error_message,
+    };
+
+    // Try finding and updating by custom_order_id
+    let orderStatusUpdate = await this.orderStatusModel.findOneAndUpdate(
+      { custom_order_id: order_id },
+      update,
+      { new: true }
+    );
+
+    // Fallback to collect_id if not found
+    if (!orderStatusUpdate) {
+      orderStatusUpdate = await this.orderStatusModel.findOneAndUpdate(
+        { collect_id: order_id },
+        update,
+        { new: true }
+      );
+    }
+
+    if (!orderStatusUpdate) {
+      throw new NotFoundException('OrderStatus not found for provided order_id');
+    }
+
+    return orderStatusUpdate;
+  }
+
+  // ✅ Get all transactions (combine Order + OrderStatus)
   async getAllTransactions() {
     return this.orderStatusModel.aggregate([
       {
         $lookup: {
-          from: 'orders',
-          localField: 'collect_id',
-          foreignField: '_id',
-          as: 'order',
+          from: 'orders',                // collection name in MongoDB
+          localField: 'collect_id',      // field in OrderStatus
+          foreignField: '_id',           // matching field in Orders
+          as: 'order',                   // result field
         },
       },
       { $unwind: '$order' },
@@ -66,7 +120,7 @@ export class OrdersService {
     ]);
   }
 
-  // Fetch transactions by school id
+  // ✅ Get transactions by school ID
   async getTransactionsBySchool(schoolId: string | Types.ObjectId) {
     return this.orderStatusModel.aggregate([
       {
@@ -97,7 +151,7 @@ export class OrdersService {
     ]);
   }
 
-  // Check transaction status by custom order id
+  // ✅ Get a specific transaction status by custom_order_id
   async getTransactionStatus(customOrderId: string) {
     const transaction = await this.orderStatusModel.findOne({ custom_order_id: customOrderId });
     if (!transaction) {

@@ -17,8 +17,8 @@ export class OrderStatus {
   @Prop({ required: true })
   payment_mode: string;
 
-  @Prop()
-  payment_details: string;
+  @Prop({ type: Object })
+  payment_details: Record<string, any>;
 
   @Prop()
   bank_reference: string;

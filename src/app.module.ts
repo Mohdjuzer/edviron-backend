@@ -7,13 +7,10 @@ import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
-    // Load .env variables globally and make ConfigService available
+    
     ConfigModule.forRoot({
-      isGlobal: true, // Makes ConfigModule available everywhere without re-importing
+      isGlobal: true,
     }),
-
-    // Connect to MongoDB using the MONGODB_URI from environment variables
-    // The exclamation mark asserts variable is not undefined (non-null assertion)
     MongooseModule.forRoot(process.env.MONGODB_URI!),
      OrdersModule, 
   ],

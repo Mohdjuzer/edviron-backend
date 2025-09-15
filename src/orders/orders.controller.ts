@@ -6,6 +6,7 @@ import {
   Body,
   Res,
   UseGuards,
+  Query, 
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { OrdersService } from './orders.service';
@@ -17,16 +18,37 @@ import { AuthGuard } from '@nestjs/passport';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // Get all transactions
+  
   @Get('transactions')
-  async fetchAllTransactions() {
-    return this.ordersService.getAllTransactions();
+  async fetchAllTransactions(
+    @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+  ) {
+    return this.ordersService.getAllTransactions({
+      limit: Number(limit),
+      page: Number(page),
+      sort,
+      order,
+    });
   }
 
   // Get transactions by school
   @Get('transactions/school/:schoolId')
-  async fetchTransactionsBySchool(@Param('schoolId') schoolId: string) {
-    return this.ordersService.getTransactionsBySchool(schoolId);
+  async fetchTransactionsBySchool(
+    @Param('schoolId') schoolId: string,
+    @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+  ) {
+    return this.ordersService.getTransactionsBySchool(schoolId, {
+      limit: Number(limit),
+      page: Number(page),
+      sort,
+      order,
+    });
   }
 
   // Get status of a specific transaction

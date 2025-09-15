@@ -15,7 +15,6 @@ export class AuthService {
     const user = await this.usersService.validateUser(username, pass);
 
     if (user) {
-      // Cast to UserDocument to get access to toObject()
       const docUser = user as UserDocument;
       const { password, ...result } = docUser.toObject();
       return result;
@@ -24,7 +23,6 @@ export class AuthService {
     return null;
   }
 
-  // Generate JWT token
   async login(user: any) {
     const payload = { username: user.username, sub: user._id };
 

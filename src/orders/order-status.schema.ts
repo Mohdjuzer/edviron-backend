@@ -3,7 +3,7 @@ import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 
 export type OrderStatusDocument = OrderStatus & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class OrderStatus {
   @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Order' })
   collect_id: Types.ObjectId;  
@@ -41,3 +41,10 @@ export class OrderStatus {
 }
 
 export const OrderStatusSchema = SchemaFactory.createForClass(OrderStatus);
+
+// Added required indexes as per edviron
+OrderStatusSchema.index({ custom_order_id: 1 });
+OrderStatusSchema.index({ collect_id: 1 });
+OrderStatusSchema.index({ payment_time: 1 });
+OrderStatusSchema.index({ status: 1 });
+OrderStatusSchema.index({ transaction_amount: 1 });

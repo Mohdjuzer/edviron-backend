@@ -1,98 +1,178 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+This project is a microservice backend for managing school transactions and payments Given by Edviron. Built with Node.js and NestJS, it integrates with a payment gateway and MongoDB Atlas, providing secure JWT-protected REST APIs to handle payment creation, webhook updates, and transaction management.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Table of Contents:
+1.Setup and Installation
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+2.Environment Variables
 
-## Description
+3.API Usage
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+4.Postman Collection
 
-## Project setup
+5.Project Structure
 
-```bash
-$ npm install
-```
+6.Additional Notes
 
-## Compile and run the project
+Setup and Installation:
+Prerequisites-
+-Node.js (v16 or later recommended)
 
-```bash
-# development
-$ npm run start
+-npm or yarn package manager
 
-# watch mode
-$ npm run start:dev
+-MongoDB Atlas account with cluster connection URI
 
-# production mode
-$ npm run start:prod
-```
+-Payment API credentials
 
-## Run tests
+Steps:
+1.Clone the Repository
 
-```bash
-# unit tests
-$ npm run test
+bash-
+git clone https://github.com/Mohdjuzer/edviron-backend.git
+cd edviron-backend
 
-# e2e tests
-$ npm run test:e2e
+2.Install Dependencies
 
-# test coverage
-$ npm run test:cov
-```
+bash-
+npm install
+# or
+yarn install
 
-## Deployment
+3.Configure Environment Variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Create a .env file in the project root.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Populate it with the reuqired data.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+4.Run the Application
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+bash-
+npm run start:dev
+# or
+yarn start:dev
+Application will start on port 3000 (default).
 
-## Resources
+-Environment Variables:
+Create a .env file with the following variables:
+# MongoDB connection URI for MongoDB Atlas
+MONGODB_URI=<your-mongodb-atlas-uri>
 
-Check out a few resources that may come in handy when working with NestJS:
+# JWT configuration
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRY=3600s
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Payment Gateway Credentials
+PG_KEY=Pg_key
+API_KEY=xxxxxxxxx... (full API key here)
 
-## Support
+# School information
+SCHOOL_ID=6xxxxxx
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Callback URL after payment
+CALLBACK_URL=http://localhost:3000/payment/callback
 
-## Stay in touch
+# Payment API endpoint URL
+PAYMENT_API=https://yourdomain.com
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+API Usage Examples
+Base URL: http://localhost:3000
 
-## License
+Authentication
+Register a new user
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+POST /auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpassword"
+}
+Login
+
+
+POST /auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpassword"
+}
+Response:
+
+json
+{
+  "access_token": "<jwt_access_token>"
+}
+Use this token for all protected endpoints in the Authorization header:
+
+text
+Authorization: Bearer <jwt_access_token>
+Payments
+Create Payment
+
+text
+POST /create-payment
+Authorization: Bearer <jwt_access_token>
+Content-Type: application/json
+
+{
+  "amount": 100
+}
+Response:
+
+json
+{
+  "paymentUrl": "https://dev-payments.edviron.com/edviron-pg/redirect?session_id=..."
+}
+Webhook
+Webhook to update payment status
+
+POST /webhook
+Content-Type: application/json
+
+{
+  "status": 200,
+  "order_info": {
+    "order_id": "custom_order_id_or_collect_id",
+    "order_amount": 2000,
+    "transaction_amount": 2200,
+    "gateway": "PhonePe",
+    "bank_reference": "YESBNK222",
+    "status": "success",
+    "payment_mode": "upi",
+    "payemnt_details": "success@ybl",
+    "Payment_message": "payment success",
+    "payment_time": "2025-04-23T08:14:21.945+00:00",
+    "error_message": "NA"
+  }
+}
+Transaction APIs
+Fetch all transactions:
+
+GET /transactions
+Authorization: Bearer <jwt_access_token>
+
+Fetch transactions by school:
+
+
+GET /transactions/school/:schoolId
+Authorization: Bearer <jwt_access_token>
+
+Check transaction status:
+
+GET /transaction-status/:custom_order_id
+Authorization: Bearer <jwt_access_token>
+
+
+
+Postman Collection
+https://mohammed-5857384.postman.co/workspace/Mohammed's-Workspace~6e94cac4-1df0-49d1-8884-4deddd33a40e/request/46646722-769bdf9a-621f-4363-86f2-bf6eeedb0361?action=share&creator=46646722
+
+Make sure to:
+
+Set environment variable jwt_token after login.
+
+Use {{jwt_token}} in the Authorization header for all protected API calls like:
+
+text
+Authorization: Bearer {{jwt_token}}
+Update base_url variable to your server URL (http://localhost:3000 or deployed URL).

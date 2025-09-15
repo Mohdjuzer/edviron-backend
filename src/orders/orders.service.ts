@@ -7,6 +7,20 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 
+
+interface ListOptions {
+  limit?: number;
+  page?: number;
+  sort?: string;
+  order?: string;
+}
+
+function buildSort(sort?: string, order?: string) {
+  if (!sort) return { payment_time: -1 }; 
+  const dir = order === 'asc' ? 1 : -1;
+  return { [sort]: dir };
+}
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -97,9 +111,12 @@ export class OrdersService {
     return orderStatusUpdate;
   }
 
-  // Get all transactions (combine Order + OrderStatus)
-  async getAllTransactions() {
-    return this.orderStatusModel.aggregate([
+  // Get all transactions
+  async getAllTransactions(options: ListOptions = {}) {
+    const { limit = 20, page = 1, sort, order } = options;
+    const skip = (page - 1) * limit;
+
+    const pipeline: any[] = [
       {
         $lookup: {
           from: 'orders',
@@ -118,14 +135,43 @@ export class OrdersService {
           transaction_amount: 1,
           status: 1,
           custom_order_id: 1,
+          payment_time: 1,
         },
       },
+      { $sort: buildSort(sort, order) },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    const [data, total] = await Promise.all([
+      this.orderStatusModel.aggregate(pipeline),
+      this.orderStatusModel.countDocuments(),
     ]);
+
+    return {
+      data,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  // Get transactions by school ID
-  async getTransactionsBySchool(schoolId: string | Types.ObjectId) {
-    return this.orderStatusModel.aggregate([
+  // Get transactions by school ID 
+  async getTransactionsBySchool(
+    schoolId: string | Types.ObjectId,
+    options: ListOptions = {},
+  ) {
+    const { limit = 20, page = 1, sort, order } = options;
+    const skip = (page - 1) * limit;
+
+    const matchStage = {
+      $match: {
+        'order.school_id': schoolId,
+      },
+    };
+
+    const pipeline: any[] = [
       {
         $lookup: {
           from: 'orders',
@@ -135,11 +181,7 @@ export class OrdersService {
         },
       },
       { $unwind: '$order' },
-      {
-        $match: {
-          'order.school_id': schoolId,
-        },
-      },
+      matchStage,
       {
         $project: {
           collect_id: 1,
@@ -149,9 +191,42 @@ export class OrdersService {
           transaction_amount: 1,
           status: 1,
           custom_order_id: 1,
+          payment_time: 1,
         },
       },
+      { $sort: buildSort(sort, order) },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    
+    const countPipeline = [
+      {
+        $lookup: {
+          from: 'orders',
+          localField: 'collect_id',
+          foreignField: '_id',
+          as: 'order',
+        },
+      },
+      { $unwind: '$order' },
+      matchStage,
+      { $count: 'count' },
+    ];
+
+    const [data, countResult] = await Promise.all([
+      this.orderStatusModel.aggregate(pipeline),
+      this.orderStatusModel.aggregate(countPipeline),
     ]);
+    const total = countResult[0]?.count || 0;
+
+    return {
+      data,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   // Get a specific transaction status by custom_order_id
@@ -164,57 +239,54 @@ export class OrdersService {
   }
 
   // Payment Gateway Integration
-async createPayment({ amount }: CreatePaymentDto): Promise<string> {
-  const school_id = process.env.SCHOOL_ID;
-  const callback_url = process.env.CALLBACK_URL;
+  async createPayment({ amount }: CreatePaymentDto): Promise<string> {
+    const school_id = process.env.SCHOOL_ID;
+    const callback_url = process.env.CALLBACK_URL;
 
-  const signPayload = {
-    school_id,
-    amount: amount.toString(),
-    callback_url,
-  };
+    const signPayload = {
+      school_id,
+      amount: amount.toString(),
+      callback_url,
+    };
 
-  const pgKey = process.env.PG_KEY;
-  if (!pgKey) {
-    throw new InternalServerErrorException('Missing PG_KEY in environment');
-  }
-  const sign = jwt.sign(signPayload, pgKey);
-
-  const body = {
-    school_id,
-    amount: amount.toString(),
-    callback_url,
-    sign,
-  };
-
-  if (!process.env.PAYMENT_API) {
-    throw new InternalServerErrorException('PAYMENT_API is not defined in environment variables');
-  }
-
-  try {
-    const response = await axios.post(
-      process.env.PAYMENT_API,
-      body,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.API_KEY}`,
-        },
-      }
-    );
-
-    const data = response.data as { collect_request_url?: string };
-
-    if (data && data.collect_request_url) {
-      return data.collect_request_url;
-    } else {
-      throw new InternalServerErrorException(`No payment URL in response. Response data: ${JSON.stringify(response.data)}`);
+    const pgKey = process.env.PG_KEY;
+    if (!pgKey) {
+      throw new InternalServerErrorException('Missing PG_KEY in environment');
     }
-  } catch (err) {
-    throw new InternalServerErrorException('Payment API failed: ' + (err.response?.data?.message || err.message));
+    const sign = jwt.sign(signPayload, pgKey);
+
+    const body = {
+      school_id,
+      amount: amount.toString(),
+      callback_url,
+      sign,
+    };
+
+    if (!process.env.PAYMENT_API) {
+      throw new InternalServerErrorException('PAYMENT_API is not defined in environment variables');
+    }
+
+    try {
+      const response = await axios.post(
+        process.env.PAYMENT_API,
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.API_KEY}`,
+          },
+        }
+      );
+
+      const data = response.data as { collect_request_url?: string };
+
+      if (data && data.collect_request_url) {
+        return data.collect_request_url;
+      } else {
+        throw new InternalServerErrorException(`No payment URL in response. Response data: ${JSON.stringify(response.data)}`);
+      }
+    } catch (err) {
+      throw new InternalServerErrorException('Payment API failed: ' + (err.response?.data?.message || err.message));
+    }
   }
-}
-
-
-
 }

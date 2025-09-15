@@ -33,3 +33,6 @@ export class Order {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+
+OrderSchema.index({ school_id: 1 });

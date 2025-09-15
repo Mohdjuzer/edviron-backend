@@ -1,42 +1,50 @@
-import { Controller, Post, Body, Res, UseGuards, Get, Param } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import type { Response } from 'express';
 import { OrdersService } from './orders.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import type { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // These routes DO require authentication
-  @UseGuards(AuthGuard('jwt'))
+  // Get all transactions
   @Get('transactions')
   async fetchAllTransactions() {
     return this.ordersService.getAllTransactions();
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  // Get transactions by school
   @Get('transactions/school/:schoolId')
   async fetchTransactionsBySchool(@Param('schoolId') schoolId: string) {
     return this.ordersService.getTransactionsBySchool(schoolId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  // Get status of a specific transaction
   @Get('transaction-status/:customOrderId')
   async checkTransactionStatus(@Param('customOrderId') customOrderId: string) {
     return this.ordersService.getTransactionStatus(customOrderId);
   }
 
-  
+  // Handle payment gateway webhook
   @Post('/webhook')
   async handleWebhook(@Body() payload: any) {
     return this.ordersService.updateOrderStatusFromWebhook(payload);
   }
 
-  
+  // Create a payment
   @Post('create-payment')
   async createPayment(@Body() dto: CreatePaymentDto, @Res() res: Response) {
     const paymentUrl = await this.ordersService.createPayment(dto);
-    return res.json({ paymentUrl });
+    return res.json({ paymentUrl }); // Or: res.redirect(paymentUrl);
   }
 }

@@ -74,7 +74,7 @@ export class OrdersService {
       error_message,
     };
 
-    // 1. Try update by custom_order_id (string)
+    // 1. Try update by custom_order_id
     let orderStatusUpdate = await this.orderStatusModel.findOneAndUpdate(
       { custom_order_id: order_id },
       update,

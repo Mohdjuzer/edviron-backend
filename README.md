@@ -34,7 +34,7 @@ cd edviron-backend
 
 bash-
 npm install
-# or
+or
 yarn install
 
 3.Configure Environment Variables
@@ -47,7 +47,7 @@ Populate it with the reuqired data.
 
 bash-
 npm run start:dev
-# or
+ or
 yarn start:dev
 Application will start on port 3000 (default).
 
